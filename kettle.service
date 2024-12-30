@@ -1,0 +1,12 @@
+[Unit]
+Description=kettle container runtime
+After=network.target local-fs.target dbus.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/kettle
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+
