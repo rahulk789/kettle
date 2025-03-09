@@ -1,6 +1,6 @@
 BINARY=kettle
-PROTO_DIR=api
-OUT_DIR=api
+PROTO_DIR=./api/shim
+OUT_DIR=./api/shim
 PROTOC_GEN_TTRPC=$(shell which protoc-gen-ttrpc)
 
 build-all:

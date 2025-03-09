@@ -1,0 +1,7 @@
+version: v1
+plugins:
+  - name: go
+    out: api/kettle
+  - name: go-grpc
+    out: api/kettle
+

@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package kettle;
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/any.proto";
+
+option go_package = "./;containers";
+
+// Containers is the service to interact with containers
+service Containers {
+  // Create creates a new container
+  rpc Create(CreateContainerRequest) returns (CreateContainerResponse);
+}
+
+// Container provides metadata for container creation and management
+message Container {
+  // ID is the user-specified identifier
+  string ID = 1;
+
+  // Spec is the OCI runtime specification
+  google.protobuf.Any spec = 5;
+
+}
+
+// CreateContainerRequest is sent when creating a new container
+message CreateContainerRequest {
+  Container container = 1;
+}
+
+// CreateContainerResponse includes the created container
+message CreateContainerResponse {
+  Container container = 1;
+}
+
