@@ -6,10 +6,11 @@ package cmd
 import (
 	"context"
 	"fmt"
-	task "kettle/api"
+	task "kettle/api/shim"
 	"log"
 	"net"
 	"os"
+	"path/filepath"
 
 	"os/exec"
 
@@ -26,6 +27,7 @@ var createCmd = &cobra.Command{
 	Long:  "",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("create called")
+		createTTRPCServer(context.TODO())
 	},
 }
 
@@ -54,6 +56,11 @@ func getTaskClient(ctx context.Context) (task.TaskService, error) {
 
 func createTTRPCServer(ctx context.Context) error {
 	socketPath := "/run/kettle/kettle.sock.ttrpc"
+	socketDir := filepath.Dir(socketPath)
+	if err := os.MkdirAll(socketDir, 0755); err != nil {
+		fmt.Println("Failed to create directory:", err)
+		return err
+	}
 	if err := os.RemoveAll(socketPath); err != nil {
 		fmt.Println("Failed to remove existing socket:", err)
 	}

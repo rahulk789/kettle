@@ -18,6 +18,7 @@ service Containers {
 message Container {
   // ID is the user-specified identifier
   string ID = 1;
+  string Bundle = 2;
 
   // Spec is the OCI runtime specification
   google.protobuf.Any spec = 5;

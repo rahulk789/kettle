@@ -6,12 +6,15 @@ package cmd
 import (
 	"context"
 	"fmt"
-	task "kettle/api"
+	containerTask "kettle/api/kettle"
 	"log"
 	"net"
+	"os"
+	"time"
 
-	"github.com/containerd/ttrpc"
 	"github.com/spf13/cobra"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 type TaskServiceImpl struct{}
@@ -38,25 +41,77 @@ to quickly create a Cobra application.`,
 			log.Fatalf("Container ID is required")
 		}
 
-		client, err := getTaskClient(ctx)
+		bundle, err := cmd.Flags().GetString("bundle")
+		if err != nil {
+			log.Fatalf("Failed to get id flag: %v", err)
+		}
+		if bundle == "" {
+			log.Fatalf("Container ID is required")
+		}
+		clientContext, cancel := context.WithTimeout(ctx, 10*time.Second)
+		defer cancel()
+		testConnection()
+		client, err := getGRPCTaskClient(clientContext)
 		if err != nil {
 			log.Fatalf("Failed to create task client: %v", err)
 		}
-		req := task.CreateTaskRequest{
-			Id: id,
+		container := containerTask.Container{
+			ID:     id,
+			Bundle: bundle,
 		}
 
-		resp, _ := client.Create(ctx, &req)
-		fmt.Println(resp.Pid)
+		req := containerTask.CreateContainerRequest{
+			Container: &container,
+		}
+		resp, _ := client.Create(clientContext, &req)
+		if err != nil {
+			log.Fatalf("Failed to get id flag: %v", err)
+		}
+		fmt.Println(resp)
 		return
 	},
 }
 
+func testConnection() {
+	socketPath := "unix:///run/kettle/kettle.sock"
+
+	// Test 1: Check if socket file exists
+	if _, err := os.Stat("/run/kettle/kettle.sock"); os.IsNotExist(err) {
+		fmt.Println("Socket file doesn't exist - server definitely not running")
+		return
+	}
+
+	// Test 2: Try raw connection
+	conn, err := net.Dial("unix", "/run/kettle/kettle.sock")
+	if err != nil {
+		fmt.Printf("Raw socket connection failed: %v\n", err)
+		return
+	}
+	conn.Close()
+	fmt.Println("Raw socket connects but might be stale")
+
+	// Test 3: gRPC connection with detailed error
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	grpcConn, err := grpc.DialContext(ctx, socketPath,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithBlock(),
+	)
+	if err != nil {
+		fmt.Printf("gRPC connection failed: %v\n", err)
+		return
+	}
+	defer grpcConn.Close()
+
+	fmt.Println("gRPC connected successfully")
+}
 func init() {
 	rootCmd.AddCommand(createCmd)
 
 	// Here you will define your flags and configuration settings.
 	createCmd.PersistentFlags().String("id", "", "container id")
+	createCmd.PersistentFlags().String("bundle", "", "bundle path")
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
@@ -66,13 +121,21 @@ func init() {
 	// is called directly, e.g.:
 	// createCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
+func getGRPCTaskClient(ctx context.Context) (containerTask.ContainersClient, error) {
+	socketPath := "unix:///run/kettle/kettle.sock"
 
-func getTaskClient(ctx context.Context) (task.TaskService, error) {
-	socketPath := "/run/kettle/kettle.sock.ttrpc"
-	conn, err := net.Dial("unix", socketPath)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	grpcClient, err := grpc.NewClient(socketPath,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithReturnConnectionError(), // This forces real connection errors
+
+		grpc.WithBlock(),
+	)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to connect to gRPC server: %w", err)
 	}
-	ttrpcClient := ttrpc.NewClient(conn)
-	return task.NewTaskClient(ttrpcClient), nil
+
+	return containerTask.NewContainersClient(grpcClient), nil
 }
