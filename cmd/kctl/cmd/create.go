@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	containerTask "kettle/api/kettle"
+	client "kettle/client"
 	"log"
 	"net"
 	"os"
@@ -51,7 +52,7 @@ to quickly create a Cobra application.`,
 		clientContext, cancel := context.WithTimeout(ctx, 10*time.Second)
 		defer cancel()
 		testConnection()
-		client, err := getGRPCTaskClient(clientContext)
+		client, err := client.GetGRPCTaskClient(clientContext)
 		if err != nil {
 			log.Fatalf("Failed to create task client: %v", err)
 		}
@@ -106,6 +107,7 @@ func testConnection() {
 
 	fmt.Println("gRPC connected successfully")
 }
+
 func init() {
 	rootCmd.AddCommand(createCmd)
 
@@ -120,22 +122,4 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// createCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-}
-func getGRPCTaskClient(ctx context.Context) (containerTask.ContainersClient, error) {
-	socketPath := "unix:///run/kettle/kettle.sock"
-
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-	defer cancel()
-
-	grpcClient, err := grpc.NewClient(socketPath,
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithReturnConnectionError(), // This forces real connection errors
-
-		grpc.WithBlock(),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to connect to gRPC server: %w", err)
-	}
-
-	return containerTask.NewContainersClient(grpcClient), nil
 }

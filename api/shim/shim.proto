@@ -13,9 +13,8 @@ option go_package = "./;task";
 // for the container processes.
 service Task {
 //	rpc State(StateRequest) returns (StateResponse);
-	rpc Create(CreateTaskRequest) returns (CreateTaskResponse);
-//	rpc Start(StartRequest) returns (StartResponse);
-//	rpc Delete(DeleteRequest) returns (DeleteResponse);
+	rpc Start(StartRequest) returns (StartResponse);
+	rpc Delete(DeleteRequest) returns (DeleteResponse);
 //	rpc Pids(PidsRequest) returns (PidsResponse);
 //	rpc Pause(PauseRequest) returns (google.protobuf.Empty);
 //	rpc Resume(ResumeRequest) returns (google.protobuf.Empty);
@@ -30,7 +29,19 @@ service Task {
 //	rpc Connect(ConnectRequest) returns (ConnectResponse);
 //	rpc Shutdown(ShutdownRequest) returns (google.protobuf.Empty);
 }
-
+message StartRequest {
+	string container_id = 1;
+	string exec_id = 2;
+}
+message StartResponse {
+	uint32 pid = 1;
+}
+message DeleteRequest {
+	string id = 1;
+}
+message DeleteResponse {
+	string id = 1;
+}
 message CreateTaskRequest {
 	string id = 1;
 	string bundle = 2;

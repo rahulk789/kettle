@@ -12,6 +12,7 @@ option go_package = "./;containers";
 service Containers {
   // Create creates a new container
   rpc Create(CreateContainerRequest) returns (CreateContainerResponse);
+  rpc Start(StartRequest) returns (StartResponse);
 }
 
 // Container provides metadata for container creation and management
@@ -34,4 +35,14 @@ message CreateContainerRequest {
 message CreateContainerResponse {
   Container container = 1;
 }
+
+message StartRequest {
+	string container_id = 1;
+	string exec_id = 2;
+}
+
+message StartResponse {
+	uint32 pid = 1;
+}
+
 

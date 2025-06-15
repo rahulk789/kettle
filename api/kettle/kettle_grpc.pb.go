@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	Containers_Create_FullMethodName = "/kettle.Containers/Create"
+	Containers_Start_FullMethodName  = "/kettle.Containers/Start"
 )
 
 // ContainersClient is the client API for Containers service.
@@ -30,6 +31,7 @@ const (
 type ContainersClient interface {
 	// Create creates a new container
 	Create(ctx context.Context, in *CreateContainerRequest, opts ...grpc.CallOption) (*CreateContainerResponse, error)
+	Start(ctx context.Context, in *StartRequest, opts ...grpc.CallOption) (*StartResponse, error)
 }
 
 type containersClient struct {
@@ -50,6 +52,16 @@ func (c *containersClient) Create(ctx context.Context, in *CreateContainerReques
 	return out, nil
 }
 
+func (c *containersClient) Start(ctx context.Context, in *StartRequest, opts ...grpc.CallOption) (*StartResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(StartResponse)
+	err := c.cc.Invoke(ctx, Containers_Start_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ContainersServer is the server API for Containers service.
 // All implementations must embed UnimplementedContainersServer
 // for forward compatibility.
@@ -58,6 +70,7 @@ func (c *containersClient) Create(ctx context.Context, in *CreateContainerReques
 type ContainersServer interface {
 	// Create creates a new container
 	Create(context.Context, *CreateContainerRequest) (*CreateContainerResponse, error)
+	Start(context.Context, *StartRequest) (*StartResponse, error)
 	mustEmbedUnimplementedContainersServer()
 }
 
@@ -70,6 +83,9 @@ type UnimplementedContainersServer struct{}
 
 func (UnimplementedContainersServer) Create(context.Context, *CreateContainerRequest) (*CreateContainerResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
+}
+func (UnimplementedContainersServer) Start(context.Context, *StartRequest) (*StartResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Start not implemented")
 }
 func (UnimplementedContainersServer) mustEmbedUnimplementedContainersServer() {}
 func (UnimplementedContainersServer) testEmbeddedByValue()                    {}
@@ -110,6 +126,24 @@ func _Containers_Create_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Containers_Start_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StartRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ContainersServer).Start(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Containers_Start_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContainersServer).Start(ctx, req.(*StartRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Containers_ServiceDesc is the grpc.ServiceDesc for Containers service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -120,6 +154,10 @@ var Containers_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Create",
 			Handler:    _Containers_Create_Handler,
+		},
+		{
+			MethodName: "Start",
+			Handler:    _Containers_Start_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
