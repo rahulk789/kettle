@@ -1,4 +1,6 @@
 # kettle
+Kettle is a minimal wacky container runtime engine written to mimic a containerd like system for performing elementary actions on containers. Currently there is nothing custom about this project. I have made sure not to use any of containerd's out of the box functions to make my life easier (because where's the fun in that XD) although I will be using libcontainer, runc and other building blocks of containerd (I swear I will rewrite libcontainer too). The plan is to understand how this thing works and eventually make a tweak to it (like kata for example) to support a niche usecase (probably something gpu/ai training related but we already have beta9). If you're reading this, you're an awesome person.  
+
 ![image](https://raw.githubusercontent.com/rahulk789/kettle/refs/heads/main/assets/kettle.png)
 <sup><sub>
 ___Reminder to self___  
