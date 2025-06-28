@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 
 	containerTask "kettle/api/kettle"
+	task "kettle/api/shim"
 
-	"github.com/containerd/containerd/api/runtime/task/v2"
 	"github.com/containerd/ttrpc"
 	"google.golang.org/grpc"
 )

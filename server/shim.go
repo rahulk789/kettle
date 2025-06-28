@@ -14,7 +14,7 @@ type TaskServiceImpl struct{}
 
 // is run by containerd daemon to call the shim binary
 func runShim(id string) (pid uint32, err error) {
-	cmdDelete := exec.Command("kettle-shim", "--id", id)
+	cmdDelete := exec.Command("kettle-shim", "start", "--id", id)
 	cmdDelete.Stdout = os.Stdout
 	cmdDelete.Stderr = os.Stderr
 	if err := cmdDelete.Run(); err != nil {
